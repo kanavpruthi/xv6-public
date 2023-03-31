@@ -532,3 +532,54 @@ procdump(void)
     cprintf("\n");
   }
 }
+
+
+int sched_policy(int pid, int policy){
+  acquire(&ptable.lock);
+  //Do stuff here.
+  //This is an incomplete function
+  release(&ptable.lock);
+  return 0;
+}
+
+int exec_time(int pid, int time){
+  struct proc *p;
+  acquire(&ptable.lock);
+
+  for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+    if(p->pid == pid){
+      p->exec_time = time;
+    }
+  }
+
+  release(&ptable.lock);
+  return 0;
+}
+
+int deadline(int pid, int time){
+  struct proc *p;
+  acquire(&ptable.lock);
+
+  for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+    if(p->pid == pid){
+      p->deadline = time;
+    }
+  }
+
+  release(&ptable.lock);
+  return 0;
+}
+
+int rate(int pid, int r){
+  struct proc *p;
+  acquire(&ptable.lock);
+
+  for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+    if(p->pid == pid){
+      p->rate = r;
+    }
+  }
+
+  release(&ptable.lock);
+  return 0;
+}

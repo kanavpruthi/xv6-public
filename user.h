@@ -37,3 +37,8 @@ void* memset(void*, int, uint);
 void* malloc(uint);
 void free(void*);
 int atoi(const char*);
+
+int sched_policy(int pid, int policy);
+int exec_time(int pid, int time);
+int deadline(int pid, int time);
+int rate(int pid, int r);

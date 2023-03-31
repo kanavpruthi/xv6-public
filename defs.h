@@ -188,3 +188,9 @@ void            clearpteu(pde_t *pgdir, char *uva);
 
 // number of elements in fixed-size array
 #define NELEM(x) (sizeof(x)/sizeof((x)[0]))
+
+int sched_policy(int pid, int policy);
+int exec_time(int pid, int time);
+int deadline(int pid, int time);
+int rate(int pid, int r);
+
