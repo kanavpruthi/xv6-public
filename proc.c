@@ -325,7 +325,8 @@ scheduler(void)
   struct proc *p;
   struct cpu *c = mycpu();
   c->proc = 0;
-  
+
+  //This loop is the round robin scheduler  
   for(;;){
     // Enable interrupts on this processor.
     sti();
@@ -353,6 +354,7 @@ scheduler(void)
     release(&ptable.lock);
 
   }
+
 }
 
 // Enter scheduler.  Must hold only ptable.lock
@@ -535,9 +537,15 @@ procdump(void)
 
 
 int sched_policy(int pid, int policy){
+  struct proc *p;
   acquire(&ptable.lock);
-  //Do stuff here.
-  //This is an incomplete function
+
+  for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+    if(p->pid == pid){
+      p->sched_pol = policy;
+    }
+  }
+
   release(&ptable.lock);
   return 0;
 }
