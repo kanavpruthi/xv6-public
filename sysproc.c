@@ -107,7 +107,7 @@ int sys_exec_time(void){
   if(argint(1, &x) < 0)
     return -1;
 
-  return sched_policy(pid, x);
+  return exec_time(pid, x);
 }
 
 int sys_deadline(void){
@@ -117,7 +117,7 @@ int sys_deadline(void){
   if(argint(1, &x) < 0)
     return -1;
 
-  return sched_policy(pid, x);
+  return deadline(pid, x);
 }
 
 int sys_rate(void){
@@ -127,5 +127,5 @@ int sys_rate(void){
   if(argint(1, &x) < 0)
     return -1;
 
-  return sched_policy(pid, x);
+  return rate(pid, x);
 }
