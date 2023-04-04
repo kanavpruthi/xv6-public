@@ -54,7 +54,11 @@ struct proc {
   int deadline;
   int rate;
   int sched_pol;
+  int elapsed_time;
+  int creation_time;
 };
+
+void update_elapsed_time(void);
 
 // Process memory is laid out contiguously, low addresses first:
 //   text
