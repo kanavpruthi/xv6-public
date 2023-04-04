@@ -609,7 +609,8 @@ int sched_policy(int pid, int policy){
         kill(p->pid);
         return -22;
       }
-    // }else{
+    }
+    // else{
     //   di = p->exec_time, pi=p->rate;
     //   rm_sum += di*pi;
     //   cnt++;
