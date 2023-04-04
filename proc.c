@@ -6,7 +6,22 @@
 #include "x86.h"
 #include "proc.h"
 #include "spinlock.h"
+// #include "math.h"
 
+float bounds[] = {0.0, 1.0, 0.8284271247461903, 0.7797631496846196,0.7568284600108841,
+0.7434917749851755, 0.7347722898562381, 0.7286265957166858,
+0.7240618613220615, 0.720537650030755, 0.7177346253629313,
+0.7154519838395894, 0.7135571323115437, 0.7119589942614066, 0.7105929411450722,
+0.7094118423094009, 0.7083805188386201, 0.7074721810599254, 0.7066660685731811, 0.7059458444776459,
+0.7052984768275516, 0.7047134431475821, 0.7041821541526114, 0.7036975292962169, 0.7032536794438098,
+0.7028456664016636, 0.702469318428085, 0.7021210870900434, 0.701797935044489, 0.7014972472209191,
+0.7012167599032493, 0.7009545036393181, 0.7007087569317321, 0.7004780084070155, 0.7002609257059471,
+0.7000563297419649, 0.6998631732772136, 0.6996805229942746, 0.6995075444158751, 0.6993434891582322,
+0.6991876841074518, 0.6990395221887002, 0.6988984544612906, 0.6987639833227344, 0.6986356566442611,
+0.6985130626923775, 0.6983958257160272, 0.6982836020999479, 0.6981760770011398, 0.6980729613990364,
+0.6979739895014547, 0.697878916456967, 0.6977875163324176, 0.697699580320482, 0.6976149151471231,
+0.6975333416535634, 0.6974546935308403, 0.6973788161880392, 0.6973055657380844, 0.6972348080871495,
+0.6971664181153514, 0.6971002789384473, 0.6970362812412048, 0.6969743226744181, 0.6969143073088304};
 
 struct {
   struct spinlock lock;
@@ -91,7 +106,8 @@ found:
   p->pid = nextpid++;
   p->elapsed_time = 0;
   p->exec_time = 1e8;
-  p->creation_time = ticks;
+  p->sched_policy=-2;
+  
 
   release(&ptable.lock);
 
@@ -330,41 +346,6 @@ scheduler(void)
   struct cpu *c = mycpu();
   c->proc = 0;
 
-  //This loop is the round robin scheduler  
-  // for(;;){
-  //   // Enable interrupts on this processor.
-  //   sti();
-  //   // Loop over process table looking for process to run.
-  //   acquire(&ptable.lock);
-  //   for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
-  //     if(p->state != RUNNABLE)
-  //       continue;
-  //     // Switch to chosen process.  It is the process's job
-  //     // to release ptable.lock and then reacquire it
-  //     // before jumping back to us.
-  //     c->proc = p;
-  //     switchuvm(p);
-  //     p->state = RUNNING;
-
-  //     swtch(&(c->scheduler), p->context);
-  //     switchkvm();
-  //     // Process is done running for now.
-  //     // It should have changed its p->state before coming back.
-  //     c->proc = 0;
-  //   }
-  //   release(&ptable.lock);
-
-  // }
-
-  //Here I have tried the approach for changing the process
-  //scheduling algorithm. The scheduling type is same for each 
-  //process, an assumption made in the assignment. According to that,
-  //if the process has a sched policy of 0 --> EDF, 1-->RM
-
-
-/*
-  Code for RM scheduling BEGINS here
-*/
   for(;;){
     sti();
     acquire(&ptable.lock);
@@ -376,7 +357,7 @@ scheduler(void)
         for(q1= ptable.proc; q1 < &ptable.proc[NPROC]; q1++){
           if(q1->state == RUNNABLE){
             int q2_p, q1_p;
-            if(q1->sched_pol==0){
+            if(q1->sched_policy==0){
               q2_p = q2->deadline;
               q1_p = q1->deadline;
             }else{
@@ -410,57 +391,6 @@ scheduler(void)
     }
     release(&ptable.lock);
   }
-
-/*
-  Code for RM scheduling ENDS here
-*/
-
-
-/*
-  Code for the EDF scheduling BEGINS here
-*/
-
-  // for(;;){
-  //   sti();
-  //   acquire(&ptable.lock);
-
-  //   for(p=ptable.proc;p<&ptable.proc[NPROC];p++){
-  //     if(p->state == RUNNABLE){
-  //       q2 = p;
-
-  //       for(q1= ptable.proc; q1 < &ptable.proc[NPROC]; q1++){
-  //         if(q1->state == RUNNABLE){
-  //           int q2_p = q2->deadline ,q1_p = q1->deadline;
-  //           // Find the priority of q2,q1
-  //           // q2_p = (90 - 3*q2_p)/29;
-  //           // q1_p = (90 - 3*q1_p)/29;
-  //           // if(q2_p==0) q2_p=1;
-  //           // if(q1_p==0) q1_p=1;
- 
-  //           if(q2_p > q1_p){
-  //             q2 = q1;
-  //           }else if(q2_p == q1_p && q1->pid < q2->pid){
-  //             q2 = q1;
-  //           }
-  //         }
-  //       }
-  //       p = q2;
-  //       c->proc = p;
-  //       switchuvm(p);
-  //       p->state = RUNNING;
-  //       swtch(&(c->scheduler), p->context);
-  //       switchkvm();
-  //       c->proc = 0;
-  //     }
-  //   }
-  //   release(&ptable.lock);
-  // }
-
-
-/*
-  Code for the EDF scheduling ENDS here
-*/
-
 
 }
 
@@ -659,31 +589,32 @@ int sched_policy(int pid, int policy){
   struct proc *p;
   int f = -22;
   acquire(&ptable.lock);
-
+  int di,pi,cnt=0;
+  float sum = 0.0;
+  float rm_sum = 0.0;
   for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
     if(p->pid == pid){
-      p->sched_pol = policy;
+      p->sched_policy = policy;
+      p->arrival_time = ticks;
+      // p->elapsed_time = 0;
       f=0;
     }
+    if(p->sched_policy==0){
+      di = p->exec_time, pi=p->deadline;
+      
+      sum = sum + ((float)di/(float)pi);
+      // sum+=60;
+      if(sum>1){
+        release(&ptable.lock);
+        kill(p->pid);
+        return -22;
+      }
+    // }else{
+    //   di = p->exec_time, pi=p->rate;
+    //   rm_sum += di*pi;
+    //   cnt++;
+    // }
   }
-
-  // p = ptable.proc;
-  // if(p->sched_pol == 0){
-  //   //Sched Check for EDF
-  //   int di,pi,sum=0;
-  //   for(p=ptable.proc; p<&ptable.proc[NPROC];p++){
-  //     if(p->state==RUNNING || p->state==RUNNABLE)
-  //     //Initialize di, pi 
-  //       sum += (di*100)/pi;
-  //   }
-  //   if(sum>100){
-  //     release(&ptable.lock);
-  //     return -22;
-  //   }
-  // }
-  // else{
-  //   //Sched Check for RM
-  // }
 
   release(&ptable.lock);
   return f;
@@ -712,8 +643,8 @@ int deadline(int pid, int time){
 
   for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
     if(p->pid == pid){
-      // p->deadline = time+p->creation_time+10;
-      p->deadline = time+10;
+      p->deadline = time+p->arrival_time;
+      // p->deadline = time+10;
       f=0;
     }
   }

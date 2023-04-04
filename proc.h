@@ -53,9 +53,9 @@ struct proc {
   int exec_time;
   int deadline;
   int rate;
-  int sched_pol;
+  int sched_policy;
   int elapsed_time;
-  int creation_time;
+  int arrival_time;
 };
 
 void update_elapsed_time(void);
