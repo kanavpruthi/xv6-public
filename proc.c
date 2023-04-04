@@ -610,11 +610,16 @@ int sched_policy(int pid, int policy){
         return -22;
       }
     }
-    // else{
-    //   di = p->exec_time, pi=p->rate;
-    //   rm_sum += di*pi;
-    //   cnt++;
-    // }
+    else{
+      di = p->exec_time, pi=p->rate;
+      rm_sum += (float)(di*pi)/100.0;
+      cnt++;
+      if(rm_sum > bounds[cnt]){
+        release(&ptable.lock);
+        kill(p->pid);
+        return -22;
+      }
+    }
   }
 
   release(&ptable.lock);
