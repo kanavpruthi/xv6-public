@@ -599,7 +599,7 @@ int sched_policy(int pid, int policy){
       // p->elapsed_time = 0;
       f=0;
     }
-    if(p->sched_policy==0){
+    if(p->sched_policy==0 && p->killed == 0){
       di = p->exec_time, pi=p->deadline;
       
       sum = sum + ((float)di/(float)pi);
@@ -610,7 +610,7 @@ int sched_policy(int pid, int policy){
         return -22;
       }
     }
-    else{
+    else if(p->sched_policy==1 && p->killed==0){
       di = p->exec_time, pi=p->rate;
       rm_sum += (float)(di*pi)/100.0;
       cnt++;
